@@ -1,0 +1,300 @@
+       TITLE 'DOUGIE''S TEST COBOL PROGRAM'
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. DGL.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT INPUT-FILE
+               ASSIGN TO INFILE
+               ORGANIZATION IS SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD   INPUT-FILE
+            BLOCK 0 RECORDS
+      *     RECORD 80 CHARACTERS
+            LABEL RECORDS OMITTED
+            DATA RECORD IS INPUT-RECORD.
+       01  INPUT-RECORD.
+           05 IN-BAG           PIC X(200).
+       WORKING-STORAGE SECTION.
+       01  INPUT-FILE-EOF      PIC X(5).
+           88  EOF-MET VALUE 'E-O-F'.
+       01  BAG-ARRAY.
+           05 BAG-ARRAY-1
+              OCCURS 600 TIMES INDEXED BY INDEX-1.
+              10 BAG-CONTAINER.
+                 15 BAG-CONT-STYLE PIC X(15).
+                 15 BAG-CONT-COLOUR PIC X(15).
+              10 BAGS
+                 OCCURS 4 TIMES.
+                 15 BAG-COUNT PIC XX.
+                 15 REDEFINES BAG-COUNT.
+                    20 BAG-NUMBER PIC 9.
+                    20 pic x.
+                 15 BAG-STYLE PIC X(15).
+                 15 BAG-COLOUR PIC X(15).
+              10 HOLD-GOLD PIC XXX.
+       01  TEMP-ARRAY.
+           05 TEMP-BAG-CONTAINER PIC X(40).
+           05 TEMP-BAGS
+              OCCURS 4 TIMES
+              PIC X(40).
+       77  TEST-IDX PIC 9(4) COMP.
+       77  BAG-IDX PIC 9(4) COMP.
+       77  SRCH-1-IDX PIC 9(4) COMP.
+       77  SRCH-2-IDX PIC 9(4) COMP.
+       77  SRCH-3-IDX PIC 9(4) COMP.
+       77  SRCH-4-IDX PIC 9(4) COMP.
+       77  SRCH-5-IDX PIC 9(4) COMP.
+       77  SRCH-6-IDX PIC 9(4) COMP.
+       77  SRCH-7-IDX PIC 9(4) COMP.
+       77  SRCH-1-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-2-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-3-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-4-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-5-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-6-BAG-IDX PIC 9(4) COMP.
+       77  SRCH-7-BAG-IDX PIC 9(4) COMP.
+       01  BASE-TOTAL   PIC 9(9) COMP.
+       01  SRCH-1-TOTAL PIC 9(9) COMP.
+       01  SRCH-2-TOTAL PIC 9(9) COMP.
+       01  SRCH-3-TOTAL PIC 9(9) COMP.
+       01  SRCH-4-TOTAL PIC 9(9) COMP.
+       01  SRCH-5-TOTAL PIC 9(9) COMP.
+       01  SRCH-6-TOTAL PIC 9(9) COMP.
+       01  SRCH-7-TOTAL PIC 9(9) COMP.
+       77  JUNK-1 PIC X.
+       PROCEDURE DIVISION.
+       PROCEDURE-HEADER-000.
+           OPEN INPUT INPUT-FILE
+           SET INDEX-1 TO 1
+           PERFORM WITH TEST BEFORE UNTIL EOF-MET
+             READ INPUT-FILE
+             AT END
+               SET EOF-MET TO TRUE
+             END-READ
+             IF NOT EOF-MET THEN
+               MOVE SPACES TO TEMP-ARRAY
+               UNSTRING
+                 IN-BAG
+                 DELIMITED BY "contain" OR ","
+                 INTO
+                 TEMP-BAG-CONTAINER
+                 TEMP-BAGS(1)
+                 TEMP-BAGS(2)
+                 TEMP-BAGS(3)
+                 TEMP-BAGS(4)
+               END-UNSTRING
+               MOVE SPACES TO BAG-ARRAY-1(INDEX-1)
+               UNSTRING
+                 TEMP-BAG-CONTAINER
+                 DELIMITED BY SPACES
+                 INTO
+                 BAG-CONT-STYLE(INDEX-1)
+                 BAG-CONT-COLOUR(INDEX-1)
+               END-UNSTRING
+               PERFORM VARYING BAG-IDX FROM 1 BY 1
+                UNTIL BAG-IDX > 4
+                 UNSTRING
+                   TEMP-BAGS(BAG-IDX)
+                   DELIMITED BY SPACES
+                   INTO
+                   JUNK-1
+                   BAG-COUNT(INDEX-1 BAG-IDX)
+                   BAG-STYLE(INDEX-1 BAG-IDX)
+                   BAG-COLOUR(INDEX-1 BAG-IDX)
+                 END-UNSTRING
+               END-PERFORM
+               SET INDEX-1 UP BY 1
+             END-IF
+           END-PERFORM
+           CLOSE INPUT-FILE
+      *
+           MOVE 0 TO BASE-TOTAL
+           PERFORM VARYING TEST-IDX FROM 1 BY 1 UNTIL TEST-IDX > 600
+             IF BAG-CONT-COLOUR(TEST-IDX) = "gold" AND
+                BAG-CONT-STYLE(TEST-IDX) = "shiny" THEN
+               PERFORM VARYING BAG-IDX FROM 1 BY 1
+                UNTIL BAG-IDX > 4
+                 IF BAG-COUNT(TEST-IDX BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(TEST-IDX BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-1-CONTAINS THRU SRCH-1-CONTAINS-EXIT
+                   COMPUTE BASE-TOTAL = BASE-TOTAL +
+                     BAG-NUMBER(TEST-IDX BAG-IDX) +
+                     (BAG-NUMBER(TEST-IDX BAG-IDX) *
+                     SRCH-1-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           DISPLAY "Tot: ", BASE-TOTAL
+      *
+           STOP RUN.
+
+       SRCH-1-CONTAINS.
+           MOVE 0 TO SRCH-1-TOTAL
+           PERFORM VARYING SRCH-1-IDX FROM 1 BY 1 UNTIL SRCH-1-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-1-IDX) =
+                BAG-COLOUR(TEST-IDX BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-1-IDX) =
+                BAG-STYLE(TEST-IDX BAG-IDX)
+               PERFORM VARYING SRCH-1-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-1-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-1-IDX SRCH-1-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-1-IDX SRCH-1-BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-2-CONTAINS THRU SRCH-2-CONTAINS-EXIT
+                   COMPUTE SRCH-1-TOTAL = SRCH-1-TOTAL +
+                     BAG-NUMBER(SRCH-1-IDX SRCH-1-BAG-IDX) +
+                     (BAG-NUMBER(SRCH-1-IDX SRCH-1-BAG-IDX) *
+                     SRCH-2-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-1-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-2-CONTAINS.
+           MOVE 0 TO SRCH-2-TOTAL
+           PERFORM VARYING SRCH-2-IDX FROM 1 BY 1 UNTIL SRCH-2-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-2-IDX) =
+                BAG-COLOUR(SRCH-1-IDX SRCH-1-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-2-IDX) =
+                BAG-STYLE(SRCH-1-IDX SRCH-1-BAG-IDX)
+               PERFORM VARYING SRCH-2-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-2-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-2-IDX SRCH-2-BAG-IDX)
+                  NOT = "no" THEN
+                   PERFORM SRCH-3-CONTAINS THRU SRCH-3-CONTAINS-EXIT
+                   COMPUTE SRCH-2-TOTAL = SRCH-2-TOTAL +
+                     BAG-NUMBER(SRCH-2-IDX SRCH-2-BAG-IDX) +
+                      (BAG-NUMBER(SRCH-2-IDX SRCH-2-BAG-IDX) *
+                     SRCH-3-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-2-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-3-CONTAINS.
+           MOVE 0 TO SRCH-3-TOTAL
+           PERFORM VARYING SRCH-3-IDX FROM 1 BY 1 UNTIL SRCH-3-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-3-IDX) =
+                BAG-COLOUR(SRCH-2-IDX SRCH-2-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-3-IDX) =
+                BAG-STYLE(SRCH-2-IDX SRCH-2-BAG-IDX)
+               PERFORM VARYING SRCH-3-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-3-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-3-IDX SRCH-3-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-3-IDX SRCH-3-BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-4-CONTAINS THRU SRCH-4-CONTAINS-EXIT
+                   COMPUTE SRCH-3-TOTAL = SRCH-3-TOTAL +
+                     BAG-NUMBER(SRCH-3-IDX SRCH-3-BAG-IDX) +
+                     (BAG-NUMBER(SRCH-3-IDX SRCH-3-BAG-IDX) *
+                     SRCH-4-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-3-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-4-CONTAINS.
+           MOVE 0 TO SRCH-4-TOTAL
+           PERFORM VARYING SRCH-4-IDX FROM 1 BY 1 UNTIL SRCH-4-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-4-IDX) =
+                BAG-COLOUR(SRCH-3-IDX SRCH-3-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-4-IDX) =
+                BAG-STYLE(SRCH-3-IDX SRCH-3-BAG-IDX)
+               PERFORM VARYING SRCH-4-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-4-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-4-IDX SRCH-4-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-4-IDX SRCH-4-BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-5-CONTAINS THRU SRCH-5-CONTAINS-EXIT
+                   COMPUTE SRCH-4-TOTAL = SRCH-4-TOTAL +
+                     BAG-NUMBER(SRCH-4-IDX SRCH-4-BAG-IDX) +
+                     (BAG-NUMBER(SRCH-4-IDX SRCH-4-BAG-IDX) *
+                     SRCH-5-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-4-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-5-CONTAINS.
+           MOVE 0 TO SRCH-5-TOTAL
+           PERFORM VARYING SRCH-5-IDX FROM 1 BY 1 UNTIL SRCH-5-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-5-IDX) =
+                BAG-COLOUR(SRCH-4-IDX SRCH-4-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-5-IDX) =
+                BAG-STYLE(SRCH-4-IDX SRCH-4-BAG-IDX)
+               PERFORM VARYING SRCH-5-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-5-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-5-IDX SRCH-5-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-5-IDX SRCH-5-BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-6-CONTAINS THRU SRCH-6-CONTAINS-EXIT
+                   COMPUTE SRCH-5-TOTAL = SRCH-5-TOTAL +
+                     BAG-NUMBER(SRCH-5-IDX SRCH-5-BAG-IDX) +
+                     (BAG-NUMBER(SRCH-5-IDX SRCH-5-BAG-IDX) *
+                     SRCH-6-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-5-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-6-CONTAINS.
+           MOVE 0 TO SRCH-6-TOTAL
+           PERFORM VARYING SRCH-6-IDX FROM 1 BY 1 UNTIL SRCH-6-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-6-IDX) =
+                BAG-COLOUR(SRCH-5-IDX SRCH-5-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-6-IDX) =
+                BAG-STYLE(SRCH-5-IDX SRCH-5-BAG-IDX)
+               PERFORM VARYING SRCH-6-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-6-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-6-IDX SRCH-6-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-6-IDX SRCH-6-BAG-IDX) NOT = "  "
+                  THEN
+                   PERFORM SRCH-7-CONTAINS THRU SRCH-7-CONTAINS-EXIT
+                   COMPUTE SRCH-6-TOTAL = SRCH-6-TOTAL +
+                     BAG-NUMBER(SRCH-6-IDX SRCH-6-BAG-IDX) +
+                     (BAG-NUMBER(SRCH-6-IDX SRCH-6-BAG-IDX) *
+                     SRCH-7-TOTAL)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-6-CONTAINS-EXIT. EXIT.
+      *
+       SRCH-7-CONTAINS.
+           MOVE 0 TO SRCH-7-TOTAL
+           PERFORM VARYING SRCH-7-IDX FROM 1 BY 1 UNTIL SRCH-7-IDX > 600
+             IF BAG-CONT-COLOUR(SRCH-7-IDX) =
+                BAG-COLOUR(SRCH-6-IDX SRCH-6-BAG-IDX)
+             AND BAG-CONT-STYLE(SRCH-7-IDX) =
+                BAG-STYLE(SRCH-6-IDX SRCH-6-BAG-IDX)
+               PERFORM VARYING SRCH-7-BAG-IDX FROM 1 BY 1
+                UNTIL SRCH-7-BAG-IDX > 4
+                 IF BAG-COUNT(SRCH-7-IDX SRCH-7-BAG-IDX) NOT = "no"
+                 AND BAG-COUNT(SRCH-7-IDX SRCH-7-BAG-IDX) NOT = "  "
+                  THEN
+      *            PERFORM SRCH-8-CONTAINS THRU SRCH-8-CONTAINS-EXIT
+                   COMPUTE SRCH-7-TOTAL = SRCH-7-TOTAL +
+                    BAG-NUMBER(SRCH-7-IDX SRCH-7-BAG-IDX)
+                 END-IF
+               END-PERFORM
+             END-IF
+           END-PERFORM
+           .
+       SRCH-7-CONTAINS-EXIT. EXIT.
+      *
+
