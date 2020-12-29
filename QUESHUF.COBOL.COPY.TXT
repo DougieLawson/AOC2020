@@ -1,0 +1,68 @@
+       PLAYER-:A:-WINS.
+      *****ADD 1 TO CARD-QUEUE-IDX-:B:
+      *    DISPLAY "  Queue-win len: ", CARD-QUEUE-IDX-:A:
+
+      * MAKE SPACE AT REAR Q:A:
+
+      *    DISPLAY "  Space at Rear: ", CARD-QUEUE-REAR-:A:,
+      *    " & Card: ", CARD-QUEUE-:A:(CARD-QUEUE-REAR-:A:)
+           ADD 1 TO CARD-QUEUE-REAR-:A:
+           IF CARD-QUEUE-REAR-:A: > 50
+             MOVE 1 TO CARD-QUEUE-REAR-:A:
+           END-IF
+
+      * FRONT Q:A: -> REAR Q:A:
+
+      *    DISPLAY "  Front-win -> Rear-win ", CARD-QUEUE-FRONT-:A:,
+      *    " ", CARD-QUEUE-:A:(CARD-QUEUE-FRONT-:A:)
+           MOVE CARD-QUEUE-:A:(CARD-QUEUE-FRONT-:A:)
+           TO   CARD-QUEUE-:A:(CARD-QUEUE-REAR-:A:)
+           MOVE 0 TO CARD-QUEUE-:A:(CARD-QUEUE-FRONT-:A:)
+           ADD 1 TO CARD-QUEUE-FRONT-:A:
+           IF CARD-QUEUE-FRONT-:A: > 50
+             MOVE 1 TO CARD-QUEUE-FRONT-:A:
+           END-IF
+
+      * MAKE SPACE AT REAR Q:A:
+
+      *    DISPLAY "  Space at Rear: ", CARD-QUEUE-REAR-:A:,
+      *    " ", CARD-QUEUE-:A:(CARD-QUEUE-REAR-:A:)
+           ADD 1 TO CARD-QUEUE-REAR-:A:
+           IF CARD-QUEUE-REAR-:A: > 50
+             MOVE 1 TO CARD-QUEUE-REAR-:A:
+           END-IF
+
+      * FRONT Q:B: TO REAR Q:A:
+
+      *    DISPLAY "  Front-loser -> ", CARD-QUEUE-FRONT-:B:,
+      *    DISPLAY " Rear-win", CARD-QUEUE-REAR-:A:
+      *    " ", CARD-QUEUE-:B:(CARD-QUEUE-FRONT-:B:)
+           MOVE CARD-QUEUE-:B:(CARD-QUEUE-FRONT-:B:)
+           TO CARD-QUEUE-:A:(CARD-QUEUE-REAR-:A:)
+           MOVE 0 TO CARD-QUEUE-:B:(CARD-QUEUE-FRONT-:B:)
+           ADD 1 TO CARD-QUEUE-IDX-:A:
+           SUBTRACT 1 FROM CARD-QUEUE-IDX-:B:
+      *    DISPLAY " Queue-1 len: ", CARD-QUEUE-IDX-1
+      *    DISPLAY " Queue-2 len: ", CARD-QUEUE-IDX-2
+           IF CARD-QUEUE-IDX-:B: = 0
+             SET QUEUE-EMPTY TO TRUE
+             MOVE 1 TO CARD-OWNER
+           END-IF
+           IF CARD-QUEUE-IDX-:A: > 50
+             PERFORM PRINT-CARD-STACKS
+             CALL "CEE3ABD" USING ABEND-3500, ABEND-OPT
+           END-IF
+
+      * FRONT Q:B: -> FRONT Q:B: +1
+
+           ADD 1 TO CARD-QUEUE-FRONT-:B:
+           IF CARD-QUEUE-FRONT-:B: > 50
+             MOVE 1 TO CARD-QUEUE-FRONT-:B:
+           END-IF
+      *    DISPLAY "Next 1: ", CARD-QUEUE-:A:(CARD-QUEUE-FRONT-:A:),
+      *            " 2: ", CARD-QUEUE-:B:(CARD-QUEUE-FRONT-:B:)
+
+      *    PERFORM PRINT-CARD-STACKS
+           EXIT.
+      *
+
